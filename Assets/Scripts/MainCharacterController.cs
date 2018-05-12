@@ -19,6 +19,12 @@ namespace UltimateIsometricToolkit.controller
         public List<float> xOffsets = new List<float>();
         public List<float> zOffsets = new List<float>();
 
+        private bool limitedForwardMovementX_Pos = false;
+        private bool limitedForwardMovementX_Neg = false;
+        private bool limitedForwardMovementZ_Pos = false;
+        private bool limitedForwardMovementZ_Neg = false;
+
+
         void Awake()
         {
             _isoTransform = this.GetOrAddComponent<IsoTransform>();
@@ -29,18 +35,39 @@ namespace UltimateIsometricToolkit.controller
             characterPosition = _isoTransform.Position;
         }
 
-        public void SpawnIndividualTile(float xPosition, float zPosition)
+        public bool SpawnIndividualTile(float xPosition, float zPosition)
         {
-            GameObject obj = (GameObject)GameObject.Instantiate(
-                        Resources.Load("g3544"),
-                        new Vector3(0, 0, 0),
-                        Quaternion.identity);
+            Vector3 newPosition = new Vector3(xPosition, characterPosition.y, zPosition);
+            bool obstacleInTheWay = false;
+            foreach (GameObject obstacle in GameObject.FindGameObjectsWithTag("Obstacle"))
+            {
+                Debug.Log("Found obstacle.");
+                Debug.Log("Obstacle Position: " + ((IsoTransform)obstacle.GetComponent(typeof(IsoTransform))).Position);
+                Debug.Log("New Position: " + newPosition);
+                if (((IsoTransform)obstacle.GetComponent(typeof(IsoTransform))).Position == newPosition)
+                {
+                    obstacleInTheWay = true;
+                }
+            }
 
-            obj.AddComponent<BoxCollider>();
+            if (!obstacleInTheWay)
+            {
+                GameObject obj = (GameObject)GameObject.Instantiate(
+                            Resources.Load("g3544"),
+                            new Vector3(0, 0, 0),
+                            Quaternion.identity);
 
-            IsoTransform newIsoTransform = obj.GetComponent(typeof(IsoTransform)) as IsoTransform;
-            newIsoTransform.Position = new Vector3(xPosition, characterPosition.y, zPosition);
-            movementTiles.Add(obj);
+                obj.AddComponent<BoxCollider>();
+
+                IsoTransform newIsoTransform = obj.GetComponent(typeof(IsoTransform)) as IsoTransform;
+                newIsoTransform.Position = newPosition;
+                movementTiles.Add(obj);
+            }
+            else
+            {
+                Debug.Log("Hit an obstacle!");
+            }
+            return obstacleInTheWay;
         }
 
         public void DestroyMovementTiles()
@@ -54,14 +81,21 @@ namespace UltimateIsometricToolkit.controller
 
     public void SpawnMovementTiles()
         {
-            for (int range = 1; range <= movementRange; range++)
+            limitedForwardMovementX_Pos = false;
+            limitedForwardMovementX_Neg = false;
+            limitedForwardMovementZ_Pos = false;
+            limitedForwardMovementZ_Neg = false;
+
+            for (float range = 1; range <= movementRange; range++)
             {
                 foreach (float offset in xOffsets)
                 {
-                    SpawnIndividualTile(characterPosition.x + offset * range, characterPosition.z);
-                    for (int leftOverRange = range; leftOverRange <= movementRange - range; leftOverRange++)
+                    if (!limitedForwardMovementX_Pos && offset == 1) limitedForwardMovementX_Pos = SpawnIndividualTile(characterPosition.x + offset * range, characterPosition.z);
+                    if (!limitedForwardMovementX_Neg && offset == -1) limitedForwardMovementX_Neg = SpawnIndividualTile(characterPosition.x + offset * range, characterPosition.z);
+                    for (float leftOverRange = range; leftOverRange <= movementRange - range; leftOverRange++)
                     {
-                        foreach (float zOffset in zOffsets) {
+                        foreach (float zOffset in zOffsets)
+                        {
                             SpawnIndividualTile(characterPosition.x + offset * range, characterPosition.z + zOffset * leftOverRange);
                         }
                     }
@@ -69,8 +103,9 @@ namespace UltimateIsometricToolkit.controller
 
                 foreach (float offset in zOffsets)
                 {
-                    SpawnIndividualTile(characterPosition.x, characterPosition.z + offset * range);
-                    for (int leftOverRange = range; leftOverRange <= movementRange - range; leftOverRange++)
+                    if (!limitedForwardMovementZ_Pos && offset == 1) limitedForwardMovementZ_Pos = SpawnIndividualTile(characterPosition.x, characterPosition.z + offset * range);
+                    if (!limitedForwardMovementZ_Neg && offset == -1) limitedForwardMovementZ_Neg = SpawnIndividualTile(characterPosition.x, characterPosition.z + offset * range);
+                    for (float leftOverRange = range; leftOverRange <= movementRange - range; leftOverRange++)
                     {
                         foreach (float xOffset in xOffsets)
                         {
@@ -90,7 +125,7 @@ namespace UltimateIsometricToolkit.controller
 
                 if (Physics.Raycast(ray, out hit, 100.0f))
                 {
-                    if (hit.transform.name == "g4846")
+                    if (hit.transform.name == "Main_Character")
                     {
                         Debug.Log("Clicked on player");
                         if (movementTiles.Count == 0) {
