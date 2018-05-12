@@ -29,6 +29,20 @@ namespace UltimateIsometricToolkit.controller
             characterPosition = _isoTransform.Position;
         }
 
+        public void SpawnIndividualTile(float xPosition, float zPosition)
+        {
+            GameObject obj = (GameObject)GameObject.Instantiate(
+                        Resources.Load("g3544"),
+                        new Vector3(0, 0, 0),
+                        Quaternion.identity);
+
+            obj.AddComponent<BoxCollider>();
+
+            IsoTransform newIsoTransform = obj.GetComponent(typeof(IsoTransform)) as IsoTransform;
+            newIsoTransform.Position = new Vector3(xPosition, characterPosition.y, zPosition);
+            movementTiles.Add(obj);
+        }
+
         public void DestroyMovementTiles()
         {
             foreach(GameObject movementTile in movementTiles)
@@ -40,34 +54,29 @@ namespace UltimateIsometricToolkit.controller
 
     public void SpawnMovementTiles()
         {
-            for (int x = 1; x <= movementRange; x++)
+            for (int range = 1; range <= movementRange; range++)
             {
                 foreach (float offset in xOffsets)
                 {
-                    GameObject obj = (GameObject)GameObject.Instantiate(
-                        Resources.Load("g3544"),
-                        new Vector3(0, 0, 0),
-                        Quaternion.identity);
-
-                    obj.AddComponent<BoxCollider>();
-
-                    IsoTransform newIsoTransform = obj.GetComponent(typeof(IsoTransform)) as IsoTransform;
-                    newIsoTransform.Position = new Vector3(characterPosition.x + offset * x, characterPosition.y, characterPosition.z);
-                    movementTiles.Add(obj);
+                    SpawnIndividualTile(characterPosition.x + offset * range, characterPosition.z);
+                    for (int leftOverRange = range; leftOverRange <= movementRange - range; leftOverRange++)
+                    {
+                        foreach (float zOffset in zOffsets) {
+                            SpawnIndividualTile(characterPosition.x + offset * range, characterPosition.z + zOffset * leftOverRange);
+                        }
+                    }
                 }
 
                 foreach (float offset in zOffsets)
                 {
-                    GameObject obj = (GameObject)GameObject.Instantiate(
-                        Resources.Load("g3544"),
-                        new Vector3(0, 0, 0),
-                        Quaternion.identity);
-
-                    obj.AddComponent<BoxCollider>();
-
-                    IsoTransform newIsoTransform = obj.GetComponent(typeof(IsoTransform)) as IsoTransform;
-                    newIsoTransform.Position = new Vector3(characterPosition.x, characterPosition.y, characterPosition.z + offset * x);
-                    movementTiles.Add(obj);
+                    SpawnIndividualTile(characterPosition.x, characterPosition.z + offset * range);
+                    for (int leftOverRange = range; leftOverRange <= movementRange - range; leftOverRange++)
+                    {
+                        foreach (float xOffset in xOffsets)
+                        {
+                            SpawnIndividualTile(characterPosition.x + xOffset * leftOverRange, characterPosition.z + offset * range);
+                        }
+                    }
                 }
             }
         }
