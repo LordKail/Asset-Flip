@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using UnityEngine.SceneManagement;
 using System.Collections;
 using System.Collections.Generic;
 using Assets.UltimateIsometricToolkit.Scripts.Core;
@@ -23,6 +24,8 @@ namespace UltimateIsometricToolkit.controller
         private bool limitedForwardMovementX_Neg = false;
         private bool limitedForwardMovementZ_Pos = false;
         private bool limitedForwardMovementZ_Neg = false;
+
+        private static bool created = false;
 
 
         void Awake()
@@ -123,19 +126,21 @@ namespace UltimateIsometricToolkit.controller
                 RaycastHit hit;
                 Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
 
-                if (Physics.Raycast(ray, out hit, 100.0f))
+                if (Physics.Raycast(ray, out hit, 1000.0f))
                 {
                     if (hit.transform.name == "Main_Character")
                     {
                         Debug.Log("Clicked on player");
-                        if (movementTiles.Count == 0) {
+                        if (movementTiles.Count == 0)
+                        {
                             SpawnMovementTiles();
-                        } else
+                        }
+                        else
                         {
                             DestroyMovementTiles();
                         }
                     }
-                    if(movementTiles.Contains(hit.transform.gameObject))
+                    if (movementTiles.Contains(hit.transform.gameObject))
                     {
                         Debug.Log("Clicked a coin!");
                         IsoTransform coinLocation = hit.transform.gameObject.GetComponent(typeof(IsoTransform)) as IsoTransform;

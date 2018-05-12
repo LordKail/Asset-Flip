@@ -59,6 +59,9 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Assets\DoNotDestroy.cs" />
+    <Compile Include="Assets\EnemyCharacterController.cs" />
+    <Compile Include="Assets\MasterObject_Script.cs" />
     <Compile Include="Assets\Scripts\MainCharacterController.cs" />
     <Compile Include="Assets\UltimateIsometricToolkit\Scripts\Core\HeuristicSorting.cs" />
     <Compile Include="Assets\UltimateIsometricToolkit\Scripts\Core\IsoSorting.cs" />
